@@ -1,0 +1,42 @@
+@page "/Import"
+@using OfficeOpenXml
+@using OfficeOpenXml.DataValidation
+<h3>Import</h3>
+<InputFile OnChange="HandleFileSelection"/>
+<button @onclick="ReadFile">Read File</button>
+@if (!string.IsNullOrEmpty(fileContent))
+{
+    <div>@fileContent</div>
+}
+@code {
+    private IBrowserFile? file;
+    private string? fileContent;
+    private void HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+    private async Task ReadFile()
+    {
+        fileContent = "starting";
+        if (file != null)
+        {
+            var ms = new MemoryStream();
+            await file.OpenReadStream().CopyToAsync(ms);
+            /*
+            var buffer = new byte[file.Size];
+            await stream.ReadAsync(buffer, 0, (int)file.Size);
+            fileContent = System.Text.Encoding.UTF8.GetString(buffer);
+            */
+
+            using var xlPackage = new ExcelPackage(ms);
+            if (xlPackage.InitializationErrors.Count() != 0)
+            {
+                fileContent = "Error";
+                return;
+            }
+            fileContent = "File loaded";
+            var wsheet = xlPackage.Workbook.Worksheets.First();
+            fileContent = wsheet.GetValue<string>(1, 1);
+        }
+    }
+}
