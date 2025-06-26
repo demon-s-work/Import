@@ -35,8 +35,12 @@
                 return;
             }
             fileContent = "File loaded";
-            var wsheet = xlPackage.Workbook.Worksheets.First();
-            fileContent = wsheet.GetValue<string>(1, 1);
+            var wsheet = xlPackage.Workbook.Worksheets.First(ws => ws.Name == "Employee's Part");
+            if (wsheet is not null)
+            {
+                var header = wsheet.Cells.FirstOrDefault(c => c.Text == "Name of the project (customer or local)");
+                fileContent = header.Columns.ToString();
+            }
         }
     }
 }
